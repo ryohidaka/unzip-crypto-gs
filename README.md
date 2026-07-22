@@ -14,6 +14,19 @@ A Google Apps Script library for extracting password-protected zip files using t
 - Supports the Stored and Deflate compression methods. Other methods throw `UnsupportedZipFeatureError`.
 - Designed for archives read via `Blob.getBytes()` (e.g. Gmail attachments, Drive files).
 
+## Installation
+
+1. Open your Apps Script project's editor.
+2. Click **Libraries** (+) in the left sidebar.
+3. Enter the Script ID:
+
+```text
+1otMuBn_dAPv3rJ659njDV03KzWas35Cz75KJ1CkEjtVUPZKJ4omeu06_
+```
+
+4. Select the latest version and click **Add**.
+5. (Optional) Change the identifier — defaults to `UnzipCryptoGs`.
+
 ## API
 
 ### `unzip(zipBlob, password)`
