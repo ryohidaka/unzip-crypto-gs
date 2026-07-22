@@ -54,3 +54,56 @@ function ZipCrypto_updateCrc32_(crc, byteValue) {
   const table = ZipCrypto_buildCrc32Table_();
   return (table[(crc ^ byteValue) & 0xff] ^ (crc >>> 8)) >>> 0;
 }
+
+// -----------------------------------------------------------------------
+// ZipCryptoCipher
+//
+// Owns the three 32-bit keys ZipCrypto updates after every plaintext
+// byte. key2 is turned into a keystream byte, XORed with the
+// ciphertext to recover the plaintext byte, which then feeds back into
+// the keys for the next byte. Each decryption needs its own key
+// schedule, so this state belongs on an instance.
+// -----------------------------------------------------------------------
+
+/** Initial value of key0, as defined by the PKWARE spec. */
+const ZipCrypto_INITIAL_KEY0_ = 0x12345678;
+
+/** Initial value of key1, as defined by the PKWARE spec. */
+const ZipCrypto_INITIAL_KEY1_ = 0x23456789;
+
+/** Initial value of key2, as defined by the PKWARE spec. */
+const ZipCrypto_INITIAL_KEY2_ = 0x34567890;
+
+/** Multiplier used by the PKWARE spec's linear congruential generator
+ *  when updating key1. */
+const ZipCrypto_LCG_MULTIPLIER_ = 134775813;
+
+/**
+ * A ZipCrypto key schedule, seeded from a password and advanced one byte at a time as data is decrypted.
+ */
+class ZipCryptoCipher {
+  /**
+   * @param {string} password The archive password.
+   */
+  constructor(password) {
+    this.key0 = ZipCrypto_INITIAL_KEY0_;
+    this.key1 = ZipCrypto_INITIAL_KEY1_;
+    this.key2 = ZipCrypto_INITIAL_KEY2_;
+
+    for (let i = 0; i < password.length; i++) {
+      this.updateKeysWithPlainByte_(password.charCodeAt(i) & 0xff);
+    }
+  }
+
+  /**
+   * Advances the three keys by one step, based on a single plaintext byte.
+   *
+   * @param {number} plainByte The plaintext byte (0-255).
+   */
+  updateKeysWithPlainByte_(plainByte) {
+    this.key0 = ZipCrypto_updateCrc32_(this.key0, plainByte);
+    this.key1 = (this.key1 + (this.key0 & 0xff)) >>> 0;
+    this.key1 = (Math.imul(this.key1, ZipCrypto_LCG_MULTIPLIER_) + 1) >>> 0;
+    this.key2 = ZipCrypto_updateCrc32_(this.key2, (this.key1 >>> 24) & 0xff);
+  }
+}
