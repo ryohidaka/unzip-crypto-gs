@@ -1,7 +1,7 @@
 /**
  * Code.gs
  *
- * Public entry points: unzip() and getFilenames().
+ * Public entry points: unzip() and getFilenames(). See CONTRIBUTING.md for internals.
  */
 
 /**
@@ -12,11 +12,16 @@
  * @return {Blob[]} One Blob per extracted file, in archive order.
  * @throws {InvalidZipError} If the Blob does not contain a valid zip
  *     structure.
+ * @throws {IncorrectPasswordError} If the password fails ZipCrypto's
+ *     verification check for an encrypted entry.
  * @throws {UnsupportedZipFeatureError} If an entry uses a compression
  *     or encryption method this library does not support (e.g. AES).
  */
 function unzip(zipBlob, password) {
-  throw new Error("Not implemented yet.");
+  const bytes = ZipParser.toUnsignedBytes(zipBlob.getBytes());
+  const entries = ZipParser.parseEntries(bytes);
+
+  return entries.map((entry) => Unzip_extractEntry_(bytes, entry, password));
 }
 
 /**

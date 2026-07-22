@@ -29,3 +29,17 @@ class UnsupportedZipFeatureError extends Error {
     this.name = "UnsupportedZipFeatureError";
   }
 }
+
+/**
+ * Thrown when the ZipCrypto verification check fails, meaning the password is likely incorrect.
+ */
+class IncorrectPasswordError extends Error {
+  /**
+   * @param {string} fileName Name of the zip entry that failed verification.
+   */
+  constructor(fileName) {
+    super(`The password appears to be incorrect for entry: ${fileName}`);
+    this.name = "IncorrectPasswordError";
+    this.fileName = fileName;
+  }
+}
