@@ -81,6 +81,10 @@ const ZipCrypto_LCG_MULTIPLIER_ = 134775813;
 /**
  * A ZipCrypto key schedule, seeded from a password and advanced one byte at a time as data is decrypted.
  */
+/** Number of bytes in the ZipCrypto verification header that precedes
+ *  the actual compressed data of every encrypted entry. */
+const ZipCrypto_VERIFICATION_HEADER_SIZE_ = 12;
+
 class ZipCryptoCipher {
   /**
    * @param {string} password The archive password.
@@ -105,5 +109,62 @@ class ZipCryptoCipher {
     this.key1 = (this.key1 + (this.key0 & 0xff)) >>> 0;
     this.key1 = (Math.imul(this.key1, ZipCrypto_LCG_MULTIPLIER_) + 1) >>> 0;
     this.key2 = ZipCrypto_updateCrc32_(this.key2, (this.key1 >>> 24) & 0xff);
+  }
+
+  /**
+   * Derives the next keystream byte from the current key2, without
+   * advancing any state.
+   *
+   * @return {number} A keystream byte (0-255).
+   */
+  deriveKeystreamByte_() {
+    const temp = (this.key2 | 2) >>> 0;
+    return (Math.imul(temp, temp ^ 1) >>> 8) & 0xff;
+  }
+
+  /**
+   * Decrypts a single byte and advances the key state.
+   *
+   * @param {number} encryptedByte The encrypted byte (0-255).
+   * @return {number} The decrypted byte (0-255).
+   */
+  decryptByte_(encryptedByte) {
+    const plainByte = (encryptedByte ^ this.deriveKeystreamByte_()) & 0xff;
+    this.updateKeysWithPlainByte_(plainByte);
+    return plainByte;
+  }
+
+  /**
+   * Decrypts a full ZipCrypto-encrypted byte array. The first
+   * `ZipCrypto_VERIFICATION_HEADER_SIZE_` bytes are the verification
+   * header; pass the result to `verifyDecryptedHeader()` to confirm
+   * the password was correct.
+   *
+   * @param {number[]} encryptedBytes Encrypted bytes, unsigned (0-255),
+   *     including the verification header.
+   * @return {number[]} Decrypted bytes, same length as the input.
+   */
+  decrypt(encryptedBytes) {
+    return encryptedBytes.map((encryptedByte) => {
+      const normalizedByte = encryptedByte < 0 ? encryptedByte + 256 : encryptedByte;
+      return this.decryptByte_(normalizedByte);
+    });
+  }
+
+  /**
+   * Checks a decrypted ZipCrypto header against the expected
+   * verification byte, to confirm the password was correct. Static
+   * because it only inspects already-decrypted output.
+   *
+   * @param {number[]} decryptedBytes The output of `decrypt()`.
+   * @param {number} expectedCrc32 The CRC-32 recorded for this entry in
+   *     the zip's Local File Header.
+   * @return {boolean} `true` if the verification byte matches.
+   */
+  static verifyDecryptedHeader(decryptedBytes, expectedCrc32) {
+    const lastHeaderByteIndex = ZipCrypto_VERIFICATION_HEADER_SIZE_ - 1;
+    const actualVerificationByte = decryptedBytes[lastHeaderByteIndex];
+    const expectedVerificationByte = (expectedCrc32 >>> 24) & 0xff;
+    return actualVerificationByte === expectedVerificationByte;
   }
 }
