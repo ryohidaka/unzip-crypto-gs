@@ -24,6 +24,10 @@ const ZipParser_FLAG_ENCRYPTED_ = 0x1;
  *  is used instead of classic ZipCrypto. */
 const ZipParser_FLAG_STRONG_ENCRYPTION_ = 0x40;
 
+/** Fixed 10-byte gzip header: magic(2) + method(1) + flags(1) + mtime(4)
+ *  + extraFlags(1) + os(1). All non-essential fields are left at 0. */
+const ZipParser_GZIP_HEADER_ = [0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff];
+
 /**
  * A single zip entry, as read from its Local File Header.
  * @typedef {{
@@ -198,5 +202,27 @@ class ZipParser {
    */
   static isEncrypted(entry) {
     return (entry.flags & ZipParser_FLAG_ENCRYPTED_) !== 0;
+  }
+
+  // -----------------------------------------------------------------------
+  // gzip wrapping
+  // -----------------------------------------------------------------------
+
+  /**
+   * Wraps a raw Deflate stream with a minimal gzip header/footer so
+   * `Utilities.ungzip()` can decompress it. A gzip stream is just
+   * "header + deflate stream + CRC-32 + size", and a decrypted zip
+   * entry's payload already *is* a raw Deflate stream with a known
+   * CRC-32/size, so no Deflate reimplementation is needed.
+   *
+   * @param {number[]} deflateData Raw Deflate-compressed bytes (unsigned).
+   * @param {number} crc32 CRC-32 of the uncompressed data.
+   * @param {number} uncompressedSize Size of the uncompressed data, in bytes.
+   * @return {number[]} A complete gzip byte stream.
+   */
+  static wrapAsGzip(deflateData, crc32, uncompressedSize) {
+    const footer = [...ZipParser.toLEBytes(crc32, 4), ...ZipParser.toLEBytes(uncompressedSize, 4)];
+
+    return [...ZipParser_GZIP_HEADER_, ...deflateData, ...footer];
   }
 }
