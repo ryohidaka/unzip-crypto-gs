@@ -128,3 +128,7 @@ or decompressing anything.
 | Error type        | When                                             |
 | ----------------- | ------------------------------------------------ |
 | `InvalidZipError` | The Blob does not contain a valid zip structure. |
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
