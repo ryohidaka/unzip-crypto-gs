@@ -27,6 +27,68 @@ A Google Apps Script library for extracting password-protected zip files using t
 4. Select the latest version and click **Add**.
 5. (Optional) Change the identifier — defaults to `UnzipCryptoGs`.
 
+## Usage
+
+```javascript
+function sample() {
+  const file = DriveApp.getFileById("###"); // your encrypted zip file
+  const password = "###";
+
+  const files = UnzipCryptoGs.unzip(file.getBlob(), password);
+
+  files.forEach((f) => {
+    Logger.log(`name: ${f.getName()}, size: ${f.getBytes().length}`);
+  });
+}
+```
+
+### Listing entry names without extracting
+
+```javascript
+function sampleListNames() {
+  const file = DriveApp.getFileById("###");
+  const names = UnzipCryptoGs.getFilenames(file.getBlob());
+  Logger.log(names.join(", "));
+}
+```
+
+### Extracting a Gmail attachment
+
+```javascript
+function extractFromGmail() {
+  const threads = GmailApp.search("from:example.com subject:Invoice");
+  const message = threads[0].getMessages()[0];
+  const attachment = message
+    .getAttachments()
+    .find((a) => a.getName().toLowerCase().endsWith(".zip"));
+
+  const files = UnzipCryptoGs.unzip(attachment.copyBlob(), "your-password");
+
+  files.forEach((f) => DriveApp.getFolderById("###").createFile(f));
+}
+```
+
+### Handling errors
+
+```javascript
+function sampleWithErrorHandling() {
+  try {
+    const files = UnzipCryptoGs.unzip(blob, password);
+    // ... use files
+  } catch (e) {
+    if (e instanceof UnzipCryptoGs.IncorrectPasswordError) {
+      Logger.log(`Wrong password for: ${e.fileName}`);
+    } else if (e instanceof UnzipCryptoGs.InvalidZipError) {
+      Logger.log(`Not a valid zip file: ${e.message}`);
+    } else if (e instanceof UnzipCryptoGs.UnsupportedZipFeatureError) {
+      Logger.log(`Unsupported zip feature: ${e.message}`);
+    } else {
+      throw e; // unexpected error, let it propagate
+    }
+  }
+}
+```
+
 ## API
 
 ### `unzip(zipBlob, password)`
