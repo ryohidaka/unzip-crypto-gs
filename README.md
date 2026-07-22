@@ -22,3 +22,9 @@ extracted as-is (the password is ignored for those).
 | `password` | `string` | The archive password.    |
 
 **Returns:** `Blob[]` — one Blob per extracted file, in archive order.
+
+**Throws:**
+
+| Error type        | When                                             |
+| ----------------- | ------------------------------------------------ |
+| `InvalidZipError` | The Blob does not contain a valid zip structure. |
