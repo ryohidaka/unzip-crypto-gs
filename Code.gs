@@ -12,6 +12,8 @@
  * @return {Blob[]} One Blob per extracted file, in archive order.
  * @throws {InvalidZipError} If the Blob does not contain a valid zip
  *     structure.
+ * @throws {UnsupportedZipFeatureError} If an entry uses a compression
+ *     or encryption method this library does not support (e.g. AES).
  */
 function unzip(zipBlob, password) {
   throw new Error("Not implemented yet.");

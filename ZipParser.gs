@@ -11,6 +11,19 @@ const ZipParser_LOCAL_FILE_HEADER_SIGNATURE_ = 0x04034b50;
  *  file name and extra field. */
 const ZipParser_LOCAL_FILE_HEADER_FIXED_SIZE_ = 30;
 
+/** Compression method code for "Stored" (no compression). */
+const ZipParser_METHOD_STORED_ = 0;
+
+/** Compression method code for "Deflate". */
+const ZipParser_METHOD_DEFLATE_ = 8;
+
+/** General purpose flag bit indicating the entry is encrypted. */
+const ZipParser_FLAG_ENCRYPTED_ = 0x1;
+
+/** General purpose flag bit indicating "strong encryption" (e.g. AES)
+ *  is used instead of classic ZipCrypto. */
+const ZipParser_FLAG_STRONG_ENCRYPTION_ = 0x40;
+
 /**
  * A single zip entry, as read from its Local File Header.
  * @typedef {{
@@ -143,5 +156,47 @@ class ZipParser {
     const dataOffset = fileNameStart + fileNameLength + extraFieldLength;
 
     return { fileName, dataOffset, compressedSize, uncompressedSize, flags, method, crc32 };
+  }
+
+  // -----------------------------------------------------------------------
+  // Feature support checks
+  // -----------------------------------------------------------------------
+
+  /**
+   * Checks that an entry's compression method is supported (Stored or
+   * Deflate) and that it doesn't use an out-of-scope feature like AES.
+   *
+   * @param {ZipEntry} entry An entry descriptor from `parseEntries`.
+   * @throws {UnsupportedZipFeatureError} If the entry uses an unsupported
+   *     compression or encryption method.
+   */
+  static assertSupportedEntry(entry) {
+    const isSupportedMethod =
+      entry.method === ZipParser_METHOD_STORED_ || entry.method === ZipParser_METHOD_DEFLATE_;
+
+    if (!isSupportedMethod) {
+      throw new UnsupportedZipFeatureError(
+        `Entry "${entry.fileName}" uses compression method ${entry.method}, ` +
+          "which is not supported (only Stored and Deflate are supported).",
+      );
+    }
+
+    const usesStrongEncryption = (entry.flags & ZipParser_FLAG_STRONG_ENCRYPTION_) !== 0;
+    if (usesStrongEncryption) {
+      throw new UnsupportedZipFeatureError(
+        `Entry "${entry.fileName}" appears to use strong encryption (e.g. AES), ` +
+          "which is not supported. Only ZipCrypto (Traditional PKWARE Encryption) is supported.",
+      );
+    }
+  }
+
+  /**
+   * Returns whether an entry is protected with ZipCrypto.
+   *
+   * @param {ZipEntry} entry An entry descriptor from `parseEntries`.
+   * @return {boolean} `true` if the entry is encrypted.
+   */
+  static isEncrypted(entry) {
+    return (entry.flags & ZipParser_FLAG_ENCRYPTED_) !== 0;
   }
 }

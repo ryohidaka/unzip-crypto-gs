@@ -25,9 +25,10 @@ extracted as-is (the password is ignored for those).
 
 **Throws:**
 
-| Error type        | When                                             |
-| ----------------- | ------------------------------------------------ |
-| `InvalidZipError` | The Blob does not contain a valid zip structure. |
+| Error type                   | When                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------- |
+| `InvalidZipError`            | The Blob does not contain a valid zip structure.                                |
+| `UnsupportedZipFeatureError` | An entry uses AES encryption or a compression method other than Stored/Deflate. |
 
 ### `getFilenames(zipBlob)`
 
