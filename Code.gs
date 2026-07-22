@@ -1,7 +1,7 @@
 /**
  * Code.gs
  *
- * Public entry point: unzip().
+ * Public entry points: unzip() and getFilenames().
  */
 
 /**
@@ -15,4 +15,18 @@
  */
 function unzip(zipBlob, password) {
   throw new Error("Not implemented yet.");
+}
+
+/**
+ * Lists the file names of every entry in a zip file, without decrypting or decompressing anything.
+ *
+ * @param {Blob} zipBlob The zip file, as a Blob.
+ * @return {string[]} The file names of every entry, in archive order.
+ * @throws {InvalidZipError} If the Blob does not contain a valid zip
+ *     structure.
+ */
+function getFilenames(zipBlob) {
+  const bytes = ZipParser.toUnsignedBytes(zipBlob.getBytes());
+  const entries = ZipParser.parseEntries(bytes);
+  return entries.map((entry) => entry.fileName);
 }

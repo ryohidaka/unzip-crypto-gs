@@ -28,3 +28,20 @@ extracted as-is (the password is ignored for those).
 | Error type        | When                                             |
 | ----------------- | ------------------------------------------------ |
 | `InvalidZipError` | The Blob does not contain a valid zip structure. |
+
+### `getFilenames(zipBlob)`
+
+Lists the file names of every entry in a zip file, without decrypting
+or decompressing anything.
+
+| Parameter | Type   | Description              |
+| --------- | ------ | ------------------------ |
+| `zipBlob` | `Blob` | The zip file to inspect. |
+
+**Returns:** `string[]` — the file names of every entry, in archive order.
+
+**Throws:**
+
+| Error type        | When                                             |
+| ----------------- | ------------------------------------------------ |
+| `InvalidZipError` | The Blob does not contain a valid zip structure. |
