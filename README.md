@@ -8,6 +8,12 @@ A Google Apps Script library for extracting password-protected zip files using t
 1otMuBn_dAPv3rJ659njDV03KzWas35Cz75KJ1CkEjtVUPZKJ4omeu06_
 ```
 
+## Limitations
+
+- Supports ZipCrypto only. AES-encrypted zips (WinZip AES) are not supported and will throw `UnsupportedZipFeatureError`.
+- Supports the Stored and Deflate compression methods. Other methods throw `UnsupportedZipFeatureError`.
+- Designed for archives read via `Blob.getBytes()` (e.g. Gmail attachments, Drive files).
+
 ## API
 
 ### `unzip(zipBlob, password)`
