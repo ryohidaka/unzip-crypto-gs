@@ -1,5 +1,8 @@
 # UnzipCryptoGs
 
+![GitHub Release](https://img.shields.io/github/v/release/ryohidaka/unzip-crypto-gs)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
 A Google Apps Script library for extracting password-protected zip files using the ZipCrypto scheme.
 
 ## Script ID
