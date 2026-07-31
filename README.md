@@ -14,6 +14,13 @@ A Google Apps Script library for extracting password-protected zip files using t
 1otMuBn_dAPv3rJ659njDV03KzWas35Cz75KJ1CkEjtVUPZKJ4omeu06_
 ```
 
+## Features
+
+- **No dependencies** — pure Apps Script, nothing to install or bundle. Just add the library and go.
+- **V8 runtime support** — built with modern JS syntax (`class`, arrow functions, destructuring, etc.), fully compatible with the Apps Script V8 engine.
+- **Simple API** — one call to `unzip()` extracts everything, or use `getFilenames()` to peek inside without decrypting.
+- **Clear error handling** — typed errors (`IncorrectPasswordError`, `InvalidZipError`, `UnsupportedZipFeatureError`) make failures easy to handle programmatically.
+
 ## Limitations
 
 > [!IMPORTANT]
